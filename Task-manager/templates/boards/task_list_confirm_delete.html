@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Lista - Trello Clone{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-warning me-2"></i>
+                    <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                </div>
+                
+                <p class="mb-3">
+                    ¿Estás seguro de que quieres eliminar la lista 
+                    <strong>"{{ task_list.name }}"</strong>?
+                </p>
+                
+                <div class="bg-light p-3 rounded mb-3">
+                    <h6>Información de la lista:</h6>
+                    <ul class="mb-0">
+                        <li><strong>Tablero:</strong> {{ board.name }}</li>
+                        <li><strong>Número de tareas:</strong> {{ task_list.tasks.count }}</li>
+                    </ul>
+                </div>
+                
+                {% if task_list.tasks.count > 0 %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Esta lista contiene {{ task_list.tasks.count }} tarea(s).</strong>
+                    Todas las tareas y sus comentarios se eliminarán permanentemente.
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Tareas que se eliminarán:</h6>
+                    <ul class="list-group">
+                        {% for task in task_list.tasks.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ task.title }}
+                            <span class="badge bg-{{ task.priority_color }}">{{ task.get_priority_display }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'board_detail' board.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Sí, Eliminar Lista
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

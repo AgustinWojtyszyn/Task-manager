@@ -1,0 +1,28 @@
+<!-- filepath: /home/aggustin/.vscode/trello_clone/templates/boards/task_list_edit.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Editar nombre de la lista</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre de la lista</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ lista.name }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Guardar cambios</button>
+                        <a href="{% url 'board_detail' lista.board.pk %}" class="btn btn-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

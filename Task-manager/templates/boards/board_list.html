@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Tableros - Trello Clone{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-columns me-2"></i>Mis Tableros</h1>
+    <a href="{% url 'board_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Crear Tablero
+    </a>
+</div>
+
+{% if owned_boards or member_boards %}
+    <!-- Tableros Propios -->
+    {% if owned_boards %}
+    <div class="mb-5">
+        <h3 class="mb-3">
+            <i class="fas fa-user me-2"></i>Mis Tableros
+            <span class="badge bg-primary">{{ owned_boards.count }}</span>
+        </h3>
+        <div class="row">
+            {% for board in owned_boards %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100 board-card">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">
+                            <a href="{% url 'board_detail' board.pk %}" class="text-decoration-none">
+                                {{ board.name }}
+                            </a>
+                        </h5>
+                        {% if board.description %}
+                        <p class="card-text text-muted">{{ board.description|truncatewords:15 }}</p>
+                        {% endif %}
+                        
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ board.updated_at|timesince }} ago
+                                </small>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                            type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'board_detail' board.pk %}">
+                                                <i class="fas fa-eye me-2"></i>Ver
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'board_edit' board.pk %}">
+                                                <i class="fas fa-edit me-2"></i>Editar
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'export_board_csv' board.pk %}">
+                                                <i class="fas fa-file-csv me-2"></i>Exportar CSV
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'export_board_json' board.pk %}">
+                                                <i class="fas fa-file-code me-2"></i>Exportar JSON
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{% url 'board_delete' board.pk %}">
+                                                <i class="fas fa-trash me-2"></i>Eliminar
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Board Stats -->
+                            <div class="mt-2">
+                                <span class="badge bg-secondary me-1">
+                                    <i class="fas fa-list me-1"></i>{{ board.lists.count }} listas
+                                </span>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-tasks me-1"></i>
+                                    {% with total_tasks=board.lists.all|length %}
+                                        {% for list in board.lists.all %}
+                                            {% if forloop.first %}
+                                                {% with total_tasks=0 %}
+                                                    {% for l in board.lists.all %}
+                                                        {% with total_tasks=total_tasks|add:l.tasks.count %}{% endwith %}
+                                                    {% endfor %}
+                                                {% endwith %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endwith %}
+                                    {{ board.lists.all.0.tasks.count|default:0 }} tareas
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tableros Compartidos -->
+    {% if member_boards %}
+    <div class="mb-5">
+        <h3 class="mb-3">
+            <i class="fas fa-users me-2"></i>Tableros Compartidos
+            <span class="badge bg-success">{{ member_boards.count }}</span>
+        </h3>
+        <div class="row">
+            {% for board in member_boards %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100 board-card">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">
+                            <a href="{% url 'board_detail' board.pk %}" class="text-decoration-none">
+                                {{ board.name }}
+                            </a>
+                        </h5>
+                        {% if board.description %}
+                        <p class="card-text text-muted">{{ board.description|truncatewords:15 }}</p>
+                        {% endif %}
+                        
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>
+                                    Por {{ board.owner.get_full_name|default:board.owner.username }}
+                                </small>
+                                <a href="{% url 'board_detail' board.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye me-1"></i>Ver
+                                </a>
+                            </div>
+                            
+                            <!-- Board Stats -->
+                            <div class="mt-2">
+                                <span class="badge bg-secondary me-1">
+                                    <i class="fas fa-list me-1"></i>{{ board.lists.count }} listas
+                                </span>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-tasks me-1"></i>0 tareas
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+{% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <i class="fas fa-columns fa-5x text-muted mb-4"></i>
+        <h3 class="text-muted">No tienes tableros aún</h3>
+        <p class="text-muted mb-4">Crea tu primer tablero para comenzar a organizar tus tareas</p>
+        <a href="{% url 'board_create' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>Crear Mi Primer Tablero
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.board-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.board-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.board-card .card-title a {
+    color: #333;
+}
+
+.board-card .card-title a:hover {
+    color: #0d6efd;
+}
+</style>
+{% endblock %}

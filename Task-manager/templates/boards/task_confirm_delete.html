@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Tarea - Trello Clone{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-warning me-2"></i>
+                    <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                </div>
+                
+                <p class="mb-3">
+                    ¿Estás seguro de que quieres eliminar la tarea 
+                    <strong>"{{ task.title }}"</strong>?
+                </p>
+                
+                <div class="bg-light p-3 rounded mb-3">
+                    <h6>Detalles de la tarea:</h6>
+                    <ul class="mb-0">
+                        <li><strong>Tablero:</strong> {{ board.name }}</li>
+                        <li><strong>Lista:</strong> {{ task.task_list.name }}</li>
+                        {% if task.assigned_to %}
+                        <li><strong>Asignado a:</strong> {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</li>
+                        {% endif %}
+                        {% if task.due_date %}
+                        <li><strong>Fecha límite:</strong> {{ task.due_date }}</li>
+                        {% endif %}
+                        <li><strong>Comentarios:</strong> {{ task.comments.count }}</li>
+                    </ul>
+                </div>
+                
+                <p class="text-muted small">
+                    Se eliminarán permanentemente todos los comentarios asociados a esta tarea.
+                </p>
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'task_detail' task.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Sí, Eliminar Tarea
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ board.name }} - Trello Clone{% endblock %}
+
+{% block main_class %}container-fluid mt-4{% endblock %}
+
+{% block content %}
+<!-- Board Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-1">{{ board.name }}</h1>
+        {% if board.description %}
+        <p class="text-muted mb-0">{{ board.description }}</p>
+        {% endif %}
+    </div>
+    <div class="d-flex gap-2">
+        {% if board.owner == user %}
+        <a href="{% url 'board_edit' board.pk %}" class="btn btn-outline-primary">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        {% endif %}
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-download me-1"></i>Exportar
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item" href="{% url 'export_board_csv' board.pk %}">
+                        <i class="fas fa-file-csv me-2"></i>Exportar como CSV
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{% url 'export_board_json' board.pk %}">
+                        <i class="fas fa-file-code me-2"></i>Exportar como JSON
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <a href="{% url 'task_create' board.pk %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Nueva Tarea
+        </a>
+    </div>
+</div>
+
+<!-- Board Content -->
+<div class="board-container">
+    <div class="lists-wrapper d-flex gap-3 pb-3" style="overflow-x: auto; min-height: 70vh;">
+        {% for list in lists %}
+        <div class="task-list" data-list-id="{{ list.id }}" style="min-width: 300px; max-width: 300px;">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <form method="post" action="{% url 'editar_lista' list.id %}" class="d-flex align-items-center" style="width: 80%;">
+                        {% csrf_token %}
+                        <input type="text" name="nombre" value="{{ list.name }}" class="form-control form-control-sm me-2" style="font-weight:bold; background:transparent; border:none;"/>
+                        <button type="submit" class="btn btn-outline-primary btn-sm" title="Guardar nombre">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </form>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'task_create_in_list' board.pk list.pk %}">
+                                    <i class="fas fa-plus me-2"></i>Añadir Tarea
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'task_list_edit' list.pk %}">
+                                    <i class="fas fa-edit me-2"></i>Editar Lista
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'task_list_delete' list.pk %}">
+                                    <i class="fas fa-trash me-2"></i>Eliminar Lista
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card-body p-2">
+                    <div class="tasks-container" id="tasks-{{ list.id }}" style="min-height: 100px;">
+                        {% for task in list.tasks.all %}
+                        <div class="task-card mb-2" draggable="true" data-task-id="{{ task.id }}">
+                            <div class="card task-item">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-1">
+                                            <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none">
+                                                {{ task.title }}
+                                            </a>
+                                        </h6>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                    type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'task_detail' task.pk %}">
+                                                        <i class="fas fa-eye me-2"></i>Ver Detalles
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'task_edit' task.pk %}">
+                                                        <i class="fas fa-edit me-2"></i>Editar
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button class="dropdown-item toggle-complete" data-task-id="{{ task.id }}">
+                                                        {% if task.completed %}
+                                                            <i class="fas fa-undo me-2"></i>Marcar Pendiente
+                                                        {% else %}
+                                                            <i class="fas fa-check me-2"></i>Marcar Completada
+                                                        {% endif %}
+                                                    </button>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="{% url 'task_delete' task.pk %}">
+                                                        <i class="fas fa-trash me-2"></i>Eliminar
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if task.description %}
+                                    <p class="card-text small text-muted mb-2">
+                                        {{ task.description|truncatewords:10 }}
+                                    </p>
+                                    {% endif %}
+                                    
+                                    <!-- Task Meta Information -->
+                                    <div class="task-meta">
+                                        <!-- Priority Badge -->
+                                        <span class="badge bg-{{ task.priority_color }} me-1">
+                                            {{ task.get_priority_display }}
+                                        </span>
+                                        
+                                        <!-- Completion Status -->
+                                        {% if task.completed %}
+                                        <span class="badge bg-success me-1">
+                                            <i class="fas fa-check me-1"></i>Completada
+                                        </span>
+                                        {% endif %}
+                                        
+                                        <!-- Due Date -->
+                                        {% if task.due_date %}
+                                        <div class="small mt-2">
+                                            <i class="fas fa-calendar me-1 {% if task.is_overdue %}text-danger{% else %}text-muted{% endif %}"></i>
+                                            <span class="{% if task.is_overdue %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                                {{ task.due_date }}
+                                                {% if task.is_overdue %}(Vencida){% endif %}
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- Assigned User -->
+                                        {% if task.assigned_to %}
+                                        <div class="small mt-1">
+                                            <i class="fas fa-user me-1 text-muted"></i>
+                                            <span class="text-muted">{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- Labels -->
+                                        {% if task.labels_list %}
+                                        <div class="mt-2">
+                                            {% for label in task.labels_list %}
+                                            <span class="badge bg-secondary me-1">{{ label }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-tasks fa-2x mb-2"></i>
+                            <p class="mb-0">No hay tareas en esta lista</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Quick Add Task Form -->
+                    <div class="quick-add-task mt-2">
+                        <form class="quick-task-form" data-list-id="{{ list.id }}">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="title" 
+                                       placeholder="Añadir una tarea..." required>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+    <div class="text-center text-muted py-3">
+        <i class="fas fa-list fa-2x mb-2"></i>
+        <p class="mb-0">No hay listas en este tablero</p>
+    </div>
+    {% endfor %}
+<!-- Add New List -->
+<div class="add-list-container" style="min-width: 300px; max-width: 300px;">
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{% url 'task_list_create' board.pk %}">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="text" class="form-control" name="name" 
+                           placeholder="Nombre de la lista..." required>
+                    <button class="btn btn-success" type="submit">
+                        <i class="fas fa-plus me-1"></i>Añadir Lista
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.board-container {
+    height: calc(100vh - 200px);
+}
+
+.task-list {
+    flex-shrink: 0;
+}
+
+.task-card {
+    cursor: grab;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.task-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.task-card.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.task-item {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.tasks-container {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.lists-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.lists-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.lists-wrapper::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.lists-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.task-meta .badge {
+    font-size: 0.7em;
+}
+
+.quick-task-form {
+    display: none;
+}
+
+.add-list-container:hover .quick-task-form,
+.quick-task-form.show {
+    display: block;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/board.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Quick task creation
+    $('.quick-task-form').on('submit', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const listId = form.data('list-id');
+        const title = form.find('input[name="title"]').val();
+        
+        if (!title.trim()) return;
+        
+        $.ajax({
+            url: `/lists/${listId}/tasks/quick-create/`,
+            method: 'POST',
+            data: {
+                'title': title,
+                'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload(); // Simple reload for now
+                } else {
+                    alert('Error al crear la tarea');
+                }
+            },
+            error: function() {
+                alert('Error al crear la tarea');
+            }
+        });
+    });
+    
+    // Toggle task completion
+    $('.toggle-complete').on('click', function(e) {
+        e.preventDefault();
+        const taskId = $(this).data('task-id');
+        
+        $.ajax({
+            url: `/tasks/${taskId}/toggle-complete/`,
+            method: 'POST',
+            data: {
+                'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                }
+            }
+        });
+    });
+    
+    // Show quick add form on hover
+    $('.task-list').hover(
+        function() {
+            $(this).find('.quick-task-form').addClass('show');
+        },
+        function() {
+            $(this).find('.quick-task-form').removeClass('show');
+        }
+    );
+});
+</script>
+{% endblock %}

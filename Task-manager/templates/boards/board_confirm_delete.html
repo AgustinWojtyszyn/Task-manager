@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Tablero - Trello Clone{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-warning me-2"></i>
+                    <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                </div>
+                
+                <p class="mb-3">
+                    ¿Estás seguro de que quieres eliminar el tablero 
+                    <strong>"{{ board.name }}"</strong>?
+                </p>
+                
+                <p class="text-muted small">
+                    Se eliminarán permanentemente:
+                </p>
+                <ul class="text-muted small">
+                    <li>{{ board.lists.count }} lista(s) de tareas</li>
+                    <li>
+                        {% with total_tasks=0 %}
+                            {% for list in board.lists.all %}
+                                {% with total_tasks=total_tasks|add:list.tasks.count %}{% endwith %}
+                            {% endfor %}
+                        {% endwith %}
+                        Todas las tareas y comentarios
+                    </li>
+                    <li>Todo el historial del tablero</li>
+                </ul>
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'board_detail' board.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Sí, Eliminar Tablero
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
