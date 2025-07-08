@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Resultados de Búsqueda - Trello Clone{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-search me-2"></i>Resultados de Búsqueda
+    </h1>
+</div>
+
+{% if query %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    Resultados para: <strong>"{{ query }}"</strong>
+    {% if page_obj %}
+        - {{ page_obj.paginator.count }} tarea(s) encontrada(s)
+    {% endif %}
+</div>
+
+{% if page_obj %}
+    <div class="row">
+        {% for task in page_obj %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 task-search-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-1">
+                            <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none">
+                                {{ task.title }}
+                            </a>
+                        </h6>
+                        <span class="badge bg-{{ task.priority_color }}">
+                            {{ task.get_priority_display }}
+                        </span>
+                    </div>
+                    
+                    {% if task.description %}
+                    <p class="card-text text-muted small mb-2">
+                        {{ task.description|truncatewords:15 }}
+                    </p>
+                    {% endif %}
+                    
+                    <!-- Task Meta -->
+                    <div class="task-meta mb-3">
+                        <div class="small text-muted mb-1">
+                            <i class="fas fa-columns me-1"></i>
+                            <a href="{% url 'board_detail' task.task_list.board.pk %}" class="text-decoration-none">
+                                {{ task.task_list.board.name }}
+                            </a>
+                            <i class="fas fa-chevron-right mx-1"></i>
+                            {{ task.task_list.name }}
+                        </div>
+                        
+                        {% if task.assigned_to %}
+                        <div class="small text-muted mb-1">
+                            <i class="fas fa-user me-1"></i>
+                            {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if task.due_date %}
+                        <div class="small mb-1">
+                            <i class="fas fa-calendar me-1 {% if task.is_overdue %}text-danger{% else %}text-muted{% endif %}"></i>
+                            <span class="{% if task.is_overdue %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                {{ task.due_date }}
+                                {% if task.is_overdue %}(Vencida){% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="small text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Actualizada {{ task.updated_at|naturaltime }}
+                        </div>
+                    </div>
+                    
+                    <!-- Labels -->
+                    {% if task.labels_list %}
+                    <div class="mb-2">
+                        {% for label in task.labels_list %}
+                        <span class="badge bg-secondary me-1">{{ label }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Status -->
+                    {% if task.completed %}
+                    <div class="mb-2">
+                        <span class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>Completada
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'task_detail' task.pk %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye me-1"></i>Ver Detalles
+                        </a>
+                        <a href="{% url 'board_detail' task.task_list.board.pk %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-columns me-1"></i>Ir al Tablero
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Navegación de resultados">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ query }}&page=1">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query }}&page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ query }}&page={{ page_obj.paginator.num_pages }}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+{% else %}
+    <!-- No Results -->
+    <div class="text-center py-5">
+        <i class="fas fa-search fa-5x text-muted mb-4"></i>
+        <h3 class="text-muted">No se encontraron resultados</h3>
+        <p class="text-muted mb-4">
+            No se encontraron tareas que coincidan con tu búsqueda "<strong>{{ query }}</strong>".
+        </p>
+        <div class="text-muted">
+            <p>Sugerencias:</p>
+            <ul class="list-unstyled">
+                <li>• Verifica la ortografía de las palabras</li>
+                <li>• Intenta con términos más generales</li>
+                <li>• Busca por etiquetas o nombres de usuario</li>
+            </ul>
+        </div>
+    </div>
+{% endif %}
+
+{% else %}
+<!-- Search Form -->
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                <h3>Buscar Tareas</h3>
+                <p class="text-muted mb-4">
+                    Encuentra tareas por título, descripción o etiquetas
+                </p>
+                
+                <form method="get" action="{% url 'search_tasks' %}">
+                    <div class="input-group input-group-lg">
+                        <input type="text" class="form-control" name="q" 
+                               placeholder="Escribe tu búsqueda..." required>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search me-2"></i>Buscar
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-4 text-muted small">
+                    <p class="mb-1">Puedes buscar por:</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <span><i class="fas fa-tag me-1"></i>Etiquetas</span>
+                        <span><i class="fas fa-heading me-1"></i>Títulos</span>
+                        <span><i class="fas fa-align-left me-1"></i>Descripciones</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.task-search-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.task-search-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.task-search-card .card-title a {
+    color: #333;
+}
+
+.task-search-card .card-title a:hover {
+    color: #0d6efd;
+}
+</style>
+{% endblock %}

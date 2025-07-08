@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+
+{% block title %}{{ task.title }} - Trello Clone{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <!-- Task Details -->
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-tasks me-2"></i>{{ task.title }}
+                    </h3>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle" 
+                                type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'task_edit' task.pk %}">
+                                    <i class="fas fa-edit me-2"></i>Editar Tarea
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button class="dropdown-item toggle-complete" data-task-id="{{ task.id }}">
+                                    {% if task.completed %}
+                                        <i class="fas fa-undo me-2"></i>Marcar como Pendiente
+                                    {% else %}
+                                        <i class="fas fa-check me-2"></i>Marcar como Completada
+                                    {% endif %}
+                                </button>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'task_delete' task.pk %}">
+                                    <i class="fas fa-trash me-2"></i>Eliminar Tarea
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <small class="text-light">
+                    En {{ task.task_list.name }} - {{ board.name }}
+                </small>
+            </div>
+            
+            <div class="card-body">
+                <!-- Task Status -->
+                {% if task.completed %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Tarea Completada</strong>
+                </div>
+                {% endif %}
+                
+                <!-- Task Description -->
+                {% if task.description %}
+                <div class="mb-4">
+                    <h5><i class="fas fa-align-left me-2"></i>Descripción</h5>
+                    <div class="bg-light p-3 rounded">
+                        {{ task.description|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Task Meta Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle me-2"></i>Información</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>Prioridad:</strong>
+                                <span class="badge bg-{{ task.priority_color }} ms-2">
+                                    {{ task.get_priority_display }}
+                                </span>
+                            </li>
+                            
+                            {% if task.due_date %}
+                            <li class="mb-2">
+                                <strong>Fecha límite:</strong>
+                                <span class="ms-2 {% if task.is_overdue %}text-danger fw-bold{% endif %}">
+                                    {{ task.due_date }}
+                                    {% if task.is_overdue %}
+                                        <span class="badge bg-danger ms-1">Vencida</span>
+                                    {% endif %}
+                                </span>
+                            </li>
+                            {% endif %}
+                            
+                            {% if task.assigned_to %}
+                            <li class="mb-2">
+                                <strong>Asignado a:</strong>
+                                <span class="ms-2">
+                                    {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
+                                </span>
+                            </li>
+                            {% endif %}
+                            
+                            <li class="mb-2">
+                                <strong>Creado:</strong>
+                                <span class="ms-2">{{ task.created_at|naturaltime }}</span>
+                            </li>
+                            
+                            {% if task.updated_at != task.created_at %}
+                            <li class="mb-2">
+                                <strong>Actualizado:</strong>
+                                <span class="ms-2">{{ task.updated_at|naturaltime }}</span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        {% if task.labels_list %}
+                        <h6><i class="fas fa-tags me-2"></i>Etiquetas</h6>
+                        <div class="mb-3">
+                            {% for label in task.labels_list %}
+                            <span class="badge bg-secondary me-1 mb-1">{{ label }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Comments Section -->
+        <div class="card shadow mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-comments me-2"></i>Comentarios
+                    <span class="badge bg-primary">{{ comments.count }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Add Comment Form -->
+                <form method="post" class="mb-4">
+                    {% csrf_token %}
+                    {{ comment_form|crispy }}
+                </form>
+                
+                <!-- Comments List -->
+                {% for comment in comments %}
+                <div class="comment mb-3 p-3 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong>
+                        <small class="text-muted">{{ comment.created_at|naturaltime }}</small>
+                    </div>
+                    <div>{{ comment.content|linebreaks }}</div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-comments fa-2x mb-2"></i>
+                    <p class="mb-0">No hay comentarios aún. ¡Sé el primero en comentar!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>Acciones
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'task_edit' task.pk %}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Editar Tarea
+                    </a>
+                    
+                    <button class="btn btn-outline-success toggle-complete" data-task-id="{{ task.id }}">
+                        {% if task.completed %}
+                            <i class="fas fa-undo me-2"></i>Marcar Pendiente
+                        {% else %}
+                            <i class="fas fa-check me-2"></i>Marcar Completada
+                        {% endif %}
+                    </button>
+                    
+                    <hr>
+                    
+                    <a href="{% url 'board_detail' board.pk %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al Tablero
+                    </a>
+                    
+                    <a href="{% url 'task_delete' task.pk %}" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-2"></i>Eliminar Tarea
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Task Activity -->
+        <div class="card shadow mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Actividad Reciente
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-primary"></div>
+                        <div class="timeline-content">
+                            <small class="text-muted">{{ task.created_at|naturaltime }}</small>
+                            <p class="mb-0">Tarea creada</p>
+                        </div>
+                    </div>
+                    
+                    {% if task.updated_at != task.created_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-info"></div>
+                        <div class="timeline-content">
+                            <small class="text-muted">{{ task.updated_at|naturaltime }}</small>
+                            <p class="mb-0">Tarea actualizada</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if task.completed %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <small class="text-muted">Completada</small>
+                            <p class="mb-0">Tarea marcada como completada</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -25px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: -21px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.comment {
+    border-left: 3px solid #0d6efd;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Toggle task completion
+    $('.toggle-complete').on('click', function(e) {
+        e.preventDefault();
+        const taskId = $(this).data('task-id');
+        
+        $.ajax({
+            url: `/tasks/${taskId}/toggle-complete/`,
+            method: 'POST',
+            data: {
+                'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                }
+            },
+            error: function() {
+                alert('Error al actualizar el estado de la tarea');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
