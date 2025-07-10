@@ -1,0 +1,49 @@
+[2025-07-08 15:18:49 -0300] [81896] [INFO] Starting gunicorn 21.2.0
+[2025-07-08 15:18:49 -0300] [81896] [INFO] Listening at: http://127.0.0.1:8000 (81896)
+[2025-07-08 15:18:49 -0300] [81896] [INFO] Using worker: sync
+[2025-07-08 15:18:49 -0300] [81899] [INFO] Booting worker with pid: 81899
+[2025-07-08 15:18:49 -0300] [81900] [INFO] Booting worker with pid: 81900
+[2025-07-08 15:18:49 -0300] [81901] [INFO] Booting worker with pid: 81901
+[2025-07-08 15:40:28 -0300] [81896] [INFO] Handling signal: hup
+[2025-07-08 15:40:28 -0300] [81896] [INFO] Hang up: Master
+[2025-07-08 15:40:28 -0300] [81896] [ERROR] Worker (pid:81899) was sent SIGHUP!
+[2025-07-08 15:40:28 -0300] [81896] [ERROR] Worker (pid:81900) was sent SIGHUP!
+[2025-07-08 15:40:28 -0300] [81896] [ERROR] Worker (pid:81901) was sent SIGHUP!
+[2025-07-08 15:40:28 -0300] [87391] [INFO] Booting worker with pid: 87391
+[2025-07-08 15:40:28 -0300] [87392] [INFO] Booting worker with pid: 87392
+[2025-07-08 15:40:28 -0300] [87393] [INFO] Booting worker with pid: 87393
+[2025-07-08 19:28:36 -0300] [12590] [INFO] Starting gunicorn 21.2.0
+[2025-07-08 19:28:36 -0300] [12590] [INFO] Listening at: http://127.0.0.1:8000 (12590)
+[2025-07-08 19:28:36 -0300] [12590] [INFO] Using worker: sync
+[2025-07-08 19:28:36 -0300] [12593] [INFO] Booting worker with pid: 12593
+[2025-07-08 19:28:36 -0300] [12594] [INFO] Booting worker with pid: 12594
+[2025-07-08 19:28:36 -0300] [12595] [INFO] Booting worker with pid: 12595
+Session data corrupted
+Session data corrupted
+Not Found: /favicon.ico
+[2025-07-08 19:31:24 -0300] [13095] [INFO] Starting gunicorn 21.2.0
+[2025-07-08 19:31:24 -0300] [13095] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2025-07-08 19:31:24 -0300] [13095] [ERROR] Retrying in 1 second.
+[2025-07-08 19:31:25 -0300] [13095] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2025-07-08 19:31:25 -0300] [13095] [ERROR] Retrying in 1 second.
+[2025-07-08 19:31:26 -0300] [13095] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2025-07-08 19:31:26 -0300] [13095] [ERROR] Retrying in 1 second.
+[2025-07-08 19:31:27 -0300] [13095] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2025-07-08 19:31:27 -0300] [13095] [ERROR] Retrying in 1 second.
+[2025-07-08 19:31:28 -0300] [13095] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2025-07-08 19:31:28 -0300] [13095] [ERROR] Retrying in 1 second.
+[2025-07-08 19:31:29 -0300] [13095] [ERROR] Can't connect to ('127.0.0.1', 8000)
+[2025-07-08 19:31:48 -0300] [13278] [INFO] Starting gunicorn 21.2.0
+[2025-07-08 19:31:48 -0300] [13278] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2025-07-08 19:31:48 -0300] [13278] [ERROR] Retrying in 1 second.
+[2025-07-08 19:31:49 -0300] [13278] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2025-07-08 19:31:49 -0300] [13278] [ERROR] Retrying in 1 second.
+[2025-07-08 19:31:50 -0300] [13278] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2025-07-08 19:31:50 -0300] [13278] [ERROR] Retrying in 1 second.
+[2025-07-08 19:31:51 -0300] [13278] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2025-07-08 19:31:51 -0300] [13278] [ERROR] Retrying in 1 second.
+[2025-07-08 19:31:51 -0300] [13278] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2025-07-08 19:31:51 -0300] [13278] [ERROR] Retrying in 1 second.
+[2025-07-08 19:31:52 -0300] [13278] [ERROR] Can't connect to ('127.0.0.1', 8000)
+Session data corrupted
+Session data corrupted
