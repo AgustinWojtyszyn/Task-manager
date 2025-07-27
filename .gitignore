@@ -76,7 +76,18 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-
+*.pyc
+__pycache__/
+db.sqlite3
+.env
+*.log
+/static/
+/media/
+venv/
+venv_task_manager/
+weather-app/
+wordpress-site/
+wordpress/ 
 # IPython
 profile_default/
 ipython_config.py
