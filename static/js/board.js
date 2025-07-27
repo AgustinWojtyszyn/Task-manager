@@ -109,18 +109,28 @@ function updateTaskPosition(taskId, newListId, newPosition) {
     var taskElement = $('.task-card[data-task-id="' + taskId + '"]');
     var originalContent = taskElement.html();
     
+    // Add loading state
+    taskElement.addClass('moving').append('<div class="moving-overlay"><i class="fas fa-spinner fa-spin"></i></div>');
+    
     $.ajax({
         url: '/tasks/' + taskId + '/move/',
         method: 'POST',
-        data: {
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        data: JSON.stringify({
             'new_list_id': newListId,
-            'new_position': newPosition,
-            'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+            'new_position': newPosition
+        }),
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader("X-CSRFToken", $('[name=csrfmiddlewaretoken]').val());
         },
         success: function(response) {
             if (response.success) {
                 // Show success feedback
-                taskElement.addClass('move-success');
+                taskElement.removeClass('moving').addClass('move-success');
+                taskElement.find('.moving-overlay').remove();
+                
                 setTimeout(function() {
                     taskElement.removeClass('move-success');
                 }, 1000);
@@ -132,7 +142,11 @@ function updateTaskPosition(taskId, newListId, newPosition) {
             }
         },
         error: function(xhr, status, error) {
-            handleMoveError(taskElement, 'Error de conexión');
+            var errorMessage = 'Error de conexión';
+            if (xhr.responseJSON && xhr.responseJSON.error) {
+                errorMessage = xhr.responseJSON.error;
+            }
+            handleMoveError(taskElement, errorMessage);
         }
     });
 }

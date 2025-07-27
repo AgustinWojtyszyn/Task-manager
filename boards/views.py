@@ -337,25 +337,66 @@ def task_move(request, pk):
         new_list_id = data.get('new_list_id')
         new_position = data.get('new_position', 0)
         
+        # Validate new list belongs to the same board
         new_list = get_object_or_404(TaskList, pk=new_list_id, board=board)
         
         with transaction.atomic():
-            # Update task list and position
+            old_list = task.task_list
+            old_position = task.position
+            
+            # If moving within the same list, adjust positions
+            if old_list == new_list:
+                if new_position < old_position:
+                    # Moving up in the same list
+                    tasks_to_update = Task.objects.filter(
+                        task_list=old_list,
+                        position__gte=new_position,
+                        position__lt=old_position
+                    )
+                    for t in tasks_to_update:
+                        t.position += 1
+                        t.save()
+                elif new_position > old_position:
+                    # Moving down in the same list
+                    tasks_to_update = Task.objects.filter(
+                        task_list=old_list,
+                        position__gt=old_position,
+                        position__lte=new_position
+                    )
+                    for t in tasks_to_update:
+                        t.position -= 1
+                        t.save()
+            else:
+                # Moving to a different list
+                # Adjust positions in old list
+                tasks_in_old_list = Task.objects.filter(
+                    task_list=old_list,
+                    position__gt=old_position
+                )
+                for t in tasks_in_old_list:
+                    t.position -= 1
+                    t.save()
+                
+                # Adjust positions in new list
+                tasks_in_new_list = Task.objects.filter(
+                    task_list=new_list,
+                    position__gte=new_position
+                )
+                for t in tasks_in_new_list:
+                    t.position += 1
+                    t.save()
+            
+            # Update the task itself
             task.task_list = new_list
             task.position = new_position
             task.save()
-            
-            # Reorder other tasks in the new list
-            tasks_to_update = Task.objects.filter(
-                task_list=new_list,
-                position__gte=new_position
-            ).exclude(pk=task.pk)
-            
-            for i, t in enumerate(tasks_to_update):
-                t.position = new_position + i + 1
-                t.save()
         
-        return JsonResponse({'success': True})
+        return JsonResponse({
+            'success': True,
+            'task_id': task.id,
+            'new_list_id': new_list.id,
+            'new_position': new_position
+        })
     
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
